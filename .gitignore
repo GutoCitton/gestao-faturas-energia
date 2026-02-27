@@ -1,0 +1,30 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+uploads/
+backend/uploads/
+*.pdf
+
+# Backend
+backend/dist/
+backend/node_modules/
+backend/.env
+
+# Frontend
+frontend/dist/
+frontend/node_modules/
+backend/.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Prisma
+backend/prisma/migrations/**/migration_lock.toml
