@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfParse = require('pdf-parse');
 
 export interface ExtractedInvoiceData {
@@ -15,7 +14,6 @@ export interface ExtractedInvoiceData {
   contribIlumPublica: number;
 }
 
-/** Parse Brazilian number format: 1.081,12 or -1.044,37 */
 function parseBrazilianNumber(str: string): number {
   const cleaned = str.replace(/\s/g, '').replace(/\./g, '').replace(',', '.');
   const num = parseFloat(cleaned);
@@ -56,6 +54,11 @@ export class PdfExtractorService {
   }
 
   private extractClientNumber(text: string): string {
+    const instalaçãoMatch = text.match(
+      /N[º°]?\s*DO\s*CLIENTE\s+N[º°]?\s*DA\s*INSTALA[ÇC][ÃA]O\s*\n\s*(\d{8,})\s+(\d{8,})/i,
+    );
+    if (instalaçãoMatch?.[1]) return instalaçãoMatch[1].trim();
+
     const patterns = [
       /N[º°]?\s*DO\s*CLIENTE\s*[\s:\-]*\s*(\d{8,})/i,
       /CLIENTE\s*[\s:\-]*\s*(\d{8,})/i,
@@ -105,16 +108,23 @@ export class PdfExtractorService {
     return chunk;
   }
 
+  private parseKwhAndValue(numbers: string[]): { kwh: number; value: number } {
+    if (!numbers || numbers.length < 2) return { kwh: 0, value: 0 };
+    const kwh = parseBrazilianNumber(numbers[0]);
+    const value =
+      numbers.length >= 3
+        ? parseBrazilianNumber(numbers[2])
+        : parseBrazilianNumber(numbers[1]);
+    return { kwh, value };
+  }
+
   private extractEnergiaEletrica(text: string): { kwh: number; value: number } {
     const re = /Energia\s+El[eé]trica(?:\s+kWh)?/i;
     const idx = text.search(re);
     if (idx < 0) return { kwh: 0, value: 0 };
     const chunk = this.sliceUntilNextSection(text, idx, 120);
     const numbers = chunk.match(/(-?[\d.]+(?:,\d+)?)/g);
-    if (!numbers || numbers.length < 2) return { kwh: 0, value: 0 };
-    const kwh = parseBrazilianNumber(numbers[0]);
-    const value = parseBrazilianNumber(numbers[numbers.length - 1]);
-    return { kwh, value };
+    return this.parseKwhAndValue(numbers ?? []);
   }
 
   private extractEnergiaSceee(text: string): { kwh: number; value: number } {
@@ -123,11 +133,7 @@ export class PdfExtractorService {
     if (idx < 0) return { kwh: 0, value: 0 };
     const chunk = this.sliceUntilNextSection(text, idx, 150);
     const numbers = chunk.match(/(-?[\d.]+(?:,\d+)?)/g);
-    if (!numbers || numbers.length < 2) return { kwh: 0, value: 0 };
-    return {
-      kwh: parseBrazilianNumber(numbers[0]),
-      value: parseBrazilianNumber(numbers[numbers.length - 1]),
-    };
+    return this.parseKwhAndValue(numbers ?? []);
   }
 
   private extractEnergiaCompensada(text: string): {
@@ -139,11 +145,7 @@ export class PdfExtractorService {
     if (idx < 0) return { kwh: 0, value: 0 };
     const chunk = this.sliceUntilNextSection(text, idx, 150);
     const numbers = chunk.match(/(-?[\d.]+(?:,\d+)?)/g);
-    if (!numbers || numbers.length < 2) return { kwh: 0, value: 0 };
-    return {
-      kwh: parseBrazilianNumber(numbers[0]),
-      value: parseBrazilianNumber(numbers[numbers.length - 1]),
-    };
+    return this.parseKwhAndValue(numbers ?? []);
   }
 
   private extractContribIlumPublica(text: string): number {
