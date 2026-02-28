@@ -10,6 +10,15 @@ import {
   ParseIntPipe,
   BadRequestException,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiConsumes,
+  ApiBody,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { Response } from 'express';
@@ -17,11 +26,24 @@ import { extname } from 'path';
 import { InvoicesService } from './invoices.service';
 import { QueryInvoiceDto } from './dto/query-invoice.dto';
 
+@ApiTags('invoices')
 @Controller('invoices')
 export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
   @Post('upload')
+  @ApiOperation({ summary: 'Enviar fatura em PDF' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary', description: 'Arquivo PDF da fatura' },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Fatura processada e salva' })
+  @ApiResponse({ status: 400, description: 'Arquivo inválido ou ausente' })
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
@@ -48,21 +70,37 @@ export class InvoicesController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Listar faturas' })
+  @ApiQuery({ name: 'clientNumber', required: false })
+  @ApiQuery({ name: 'year', required: false })
+  @ApiQuery({ name: 'month', required: false })
+  @ApiResponse({ status: 200, description: 'Lista de faturas' })
   findAll(@Query() query: QueryInvoiceDto) {
     return this.invoicesService.findAll(query);
   }
 
   @Get('dashboard')
+  @ApiOperation({ summary: 'Dados agregados para dashboard' })
+  @ApiQuery({ name: 'clientNumber', required: false })
+  @ApiQuery({ name: 'year', required: false })
+  @ApiQuery({ name: 'month', required: false })
+  @ApiResponse({ status: 200, description: 'Totais e série temporal' })
   getDashboard(@Query() query: QueryInvoiceDto) {
     return this.invoicesService.getDashboard(query);
   }
 
   @Get('clients')
+  @ApiOperation({ summary: 'Listar números de clientes distintos' })
+  @ApiResponse({ status: 200, description: 'Lista de números de cliente' })
   getClients() {
     return this.invoicesService.getDistinctClients();
   }
 
   @Get(':id/download')
+  @ApiOperation({ summary: 'Download do PDF da fatura' })
+  @ApiParam({ name: 'id', description: 'ID da fatura' })
+  @ApiResponse({ status: 200, description: 'Arquivo PDF' })
+  @ApiResponse({ status: 404, description: 'Fatura não encontrada' })
   async download(
     @Param('id', ParseIntPipe) id: number,
     @Res() res: Response,
