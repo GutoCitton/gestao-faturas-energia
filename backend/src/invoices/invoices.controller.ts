@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Param,
   Query,
   UseInterceptors,
@@ -9,6 +10,8 @@ import {
   Res,
   ParseUUIDPipe,
   BadRequestException,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -109,5 +112,15 @@ export class InvoicesController {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     stream.pipe(res);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Deletar fatura' })
+  @ApiParam({ name: 'id', description: 'ID da fatura' })
+  @ApiResponse({ status: 204, description: 'Fatura deletada' })
+  @ApiResponse({ status: 404, description: 'Fatura não encontrada' })
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
+    await this.invoicesService.remove(id);
   }
 }

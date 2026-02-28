@@ -17,4 +17,8 @@ export class StorageService {
   async getStream(key: string): Promise<Readable> {
     return this.adapter.getStream(key);
   }
+
+  async delete(key: string): Promise<void> {
+    return this.adapter.delete(key);
+  }
 }

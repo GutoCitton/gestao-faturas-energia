@@ -3,10 +3,11 @@ import { invoicesApi } from '../api/invoices'
 
 interface InvoiceTableProps {
   invoices: Invoice[]
+  onDelete?: (id: string) => void
 }
 
-export function InvoiceTable({ invoices }: InvoiceTableProps) {
-  const handleDownload = (id: number) => {
+export function InvoiceTable({ invoices, onDelete }: InvoiceTableProps) {
+  const handleDownload = (id: string) => {
     window.open(invoicesApi.downloadUrl(id), '_blank')
   }
 
@@ -39,7 +40,7 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
               Valor sem GD (R$)
             </th>
             <th className="px-4 py-3 text-center text-xs font-medium uppercase">
-              Download
+              Ações
             </th>
           </tr>
         </thead>
@@ -68,12 +69,26 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
                 })}
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-center">
-                <button
-                  onClick={() => handleDownload(inv.id)}
-                  className="rounded bg-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-300"
-                >
-                  PDF
-                </button>
+                <div className="flex justify-center gap-2">
+                  <button
+                    onClick={() => handleDownload(inv.id)}
+                    className="rounded bg-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-300"
+                  >
+                    PDF
+                  </button>
+                  {onDelete && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm('Tem certeza que deseja excluir esta fatura?')) {
+                          onDelete(inv.id)
+                        }
+                      }}
+                      className="rounded bg-red-100 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-200"
+                    >
+                      Deletar
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}

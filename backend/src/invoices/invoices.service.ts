@@ -151,4 +151,15 @@ export class InvoicesService {
       filename: `fatura_${invoice.clientNumber}_${invoice.referenceMonth.replace('/', '-')}.pdf`,
     };
   }
+
+  async remove(id: string) {
+    const invoice = await this.prisma.invoice.findUnique({
+      where: { id },
+    });
+    if (!invoice) {
+      throw new NotFoundException('Invoice not found');
+    }
+    await this.storageService.delete(invoice.pdfPath);
+    await this.prisma.invoice.delete({ where: { id } });
+  }
 }

@@ -47,4 +47,14 @@ export class SupabaseStorageAdapter implements IStorageAdapter {
     const arrayBuffer = await data.arrayBuffer();
     return Readable.from(Buffer.from(arrayBuffer));
   }
+
+  async delete(key: string): Promise<void> {
+    const { error } = await this.client.storage
+      .from(this.bucket)
+      .remove([key]);
+
+    if (error) {
+      throw new Error(`Supabase delete failed: ${error.message}`);
+    }
+  }
 }

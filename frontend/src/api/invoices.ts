@@ -6,7 +6,7 @@ const api = axios.create({
 })
 
 export interface Invoice {
-  id: number
+  id: string
   clientNumber: string
   referenceMonth: string
   distributorName: string | null
@@ -64,6 +64,8 @@ export const invoicesApi = {
     }).then((r) => r.data)
   },
 
-  downloadUrl: (id: number) =>
+  downloadUrl: (id: string) =>
     `${import.meta.env.VITE_API_URL ?? '/api'}/invoices/${id}/download`,
+
+  delete: (id: string) => api.delete(`/invoices/${id}`),
 }

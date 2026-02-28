@@ -76,7 +76,17 @@ export function InvoiceLibrary() {
         </div>
       </div>
 
-      <InvoiceTable invoices={invoices} />
+      <InvoiceTable
+        invoices={invoices}
+        onDelete={async (id) => {
+          try {
+            await invoicesApi.delete(id)
+            fetchInvoices()
+          } catch {
+            alert('Erro ao excluir fatura. Tente novamente.')
+          }
+        }}
+      />
 
       <UploadModal
         open={uploadOpen}
