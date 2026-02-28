@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import type { Invoice } from '../api/invoices'
 import { invoicesApi } from '../api/invoices'
+import { InvoiceDetailModal } from './InvoiceDetailModal'
 
 interface InvoiceTableProps {
   invoices: Invoice[]
@@ -7,8 +9,16 @@ interface InvoiceTableProps {
 }
 
 export function InvoiceTable({ invoices, onDelete }: InvoiceTableProps) {
+  const [detailInvoice, setDetailInvoice] = useState<Invoice | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
+
   const handleDownload = (id: string) => {
     window.open(invoicesApi.downloadUrl(id), '_blank')
+  }
+
+  const openDetail = (inv: Invoice) => {
+    setDetailInvoice(inv)
+    setDetailOpen(true)
   }
 
   if (invoices.length === 0) {
@@ -25,7 +35,7 @@ export function InvoiceTable({ invoices, onDelete }: InvoiceTableProps) {
         <thead className="bg-emerald-700 text-white">
           <tr>
             <th className="px-4 py-3 text-left text-xs font-medium uppercase">
-              Nº da UC
+              Nº do Cliente
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium uppercase">
               Mês/Ano
@@ -71,6 +81,12 @@ export function InvoiceTable({ invoices, onDelete }: InvoiceTableProps) {
               <td className="whitespace-nowrap px-4 py-3 text-center">
                 <div className="flex justify-center gap-2">
                   <button
+                    onClick={() => openDetail(inv)}
+                    className="rounded bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-200"
+                  >
+                    Detalhes
+                  </button>
+                  <button
                     onClick={() => handleDownload(inv.id)}
                     className="rounded bg-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-300"
                   >
@@ -94,6 +110,12 @@ export function InvoiceTable({ invoices, onDelete }: InvoiceTableProps) {
           ))}
         </tbody>
       </table>
+
+      <InvoiceDetailModal
+        invoice={detailInvoice}
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+      />
     </div>
   )
 }

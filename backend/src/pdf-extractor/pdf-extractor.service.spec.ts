@@ -105,6 +105,39 @@ describe('PdfExtractorService', () => {
     expect(result.contribIlumPublica).toBeCloseTo(47.57, 2);
   });
 
+  it('should extract ressarcimento de danos when present', async () => {
+    pdfParseMock.mockResolvedValue({
+      text: `
+        Nº DO CLIENTE 7202210726
+        Referente a SET/2024
+        Energia Elétrica kWh 100 104,81
+        Energia SCEEE kWh 1.860 1.081,12
+        Energia compensada GD I kWh 1.860 -1.044,37
+        Contrib Ilum Publica Municipal 47,57
+        Ressarcimento de Danos 12,50
+      `,
+    });
+
+    const result = await service.extractFromBuffer(Buffer.from('mock'));
+
+    expect(result.ressarcimentoDanos).toBeCloseTo(12.5, 2);
+  });
+
+  it('should return 0 for ressarcimento de danos when absent', async () => {
+    pdfParseMock.mockResolvedValue({
+      text: `
+        Nº DO CLIENTE 7202210726
+        Referente a SET/2024
+        Energia Elétrica kWh 100 104,81
+        Contrib Ilum Publica Municipal 47,57
+      `,
+    });
+
+    const result = await service.extractFromBuffer(Buffer.from('mock'));
+
+    expect(result.ressarcimentoDanos).toBe(0);
+  });
+
   it('should throw when PDF is empty', async () => {
     pdfParseMock.mockResolvedValue({ text: '' });
 

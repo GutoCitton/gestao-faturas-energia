@@ -18,9 +18,11 @@ export class InvoicesService {
     const consumoTotal =
       extracted.energiaEletricaKwh + extracted.energiaSceeeKwh;
     const valorTotalSemGD =
-      extracted.energiaEletricaValue +
-      extracted.energiaSceeeValue +
-      extracted.contribIlumPublica;
+      extracted.valorAPagar ??
+      (extracted.energiaEletricaValue +
+        extracted.energiaSceeeValue +
+        extracted.contribIlumPublica +
+        extracted.ressarcimentoDanos);
     const economiaGD = Math.abs(extracted.energiaCompensadaValue);
 
     return this.prisma.invoice.upsert({
@@ -41,6 +43,7 @@ export class InvoicesService {
         energiaCompensadaKwh: extracted.energiaCompensadaKwh,
         energiaCompensadaValue: extracted.energiaCompensadaValue,
         contribIlumPublica: extracted.contribIlumPublica,
+        ressarcimentoDanos: extracted.ressarcimentoDanos,
         consumoTotal,
         valorTotalSemGD,
         economiaGD,
@@ -55,6 +58,7 @@ export class InvoicesService {
         energiaCompensadaKwh: extracted.energiaCompensadaKwh,
         energiaCompensadaValue: extracted.energiaCompensadaValue,
         contribIlumPublica: extracted.contribIlumPublica,
+        ressarcimentoDanos: extracted.ressarcimentoDanos,
         consumoTotal,
         valorTotalSemGD,
         economiaGD,

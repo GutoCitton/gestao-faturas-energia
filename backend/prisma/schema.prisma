@@ -21,9 +21,10 @@ model Invoice {
   energiaCompensadaKwh   Float
   energiaCompensadaValue Float
   contribIlumPublica     Float
+  ressarcimentoDanos     Float @default(0)
 
   consumoTotal           Float // energiaEletricaKwh + energiaSceeeKwh
-  valorTotalSemGD        Float // energiaEletricaValue + energiaSceeeValue + contribIlumPublica
+  valorTotalSemGD        Float // energiaEletricaValue + energiaSceeeValue + contribIlumPublica + ressarcimentoDanos
   economiaGD             Float // abs(energiaCompensadaValue)
 
   pdfPath                String

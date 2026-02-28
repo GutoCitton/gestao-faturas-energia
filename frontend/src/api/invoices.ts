@@ -17,6 +17,7 @@ export interface Invoice {
   energiaCompensadaKwh: number
   energiaCompensadaValue: number
   contribIlumPublica: number
+  ressarcimentoDanos: number
   consumoTotal: number
   valorTotalSemGD: number
   economiaGD: number

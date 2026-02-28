@@ -52,6 +52,7 @@ describe('InvoicesService', () => {
         energiaCompensadaKwh: 1860,
         energiaCompensadaValue: -1044.37,
         contribIlumPublica: 47.57,
+        ressarcimentoDanos: 0,
       });
 
       mockPrisma.invoice.upsert.mockResolvedValue({
@@ -68,7 +69,34 @@ describe('InvoicesService', () => {
       const upsertCall = mockPrisma.invoice.upsert.mock.calls[0][0];
       expect(upsertCall.create.consumoTotal).toBe(1960);
       expect(upsertCall.create.valorTotalSemGD).toBeCloseTo(1233.5, 2);
+      expect(upsertCall.create.ressarcimentoDanos).toBe(0);
       expect(upsertCall.create.economiaGD).toBeCloseTo(1044.37, 2);
+    });
+
+    it('should include ressarcimentoDanos in valorTotalSemGD when no valorAPagar', async () => {
+      mockStorageService.upload.mockResolvedValue(undefined);
+      mockPdfExtractor.extractFromBuffer.mockResolvedValue({
+        clientNumber: '7202210726',
+        referenceMonth: 'SET/2024',
+        energiaEletricaKwh: 100,
+        energiaEletricaValue: 100,
+        energiaSceeeKwh: 100,
+        energiaSceeeValue: 100,
+        energiaCompensadaKwh: 0,
+        energiaCompensadaValue: 0,
+        contribIlumPublica: 50,
+        ressarcimentoDanos: 12.5,
+      });
+
+      mockPrisma.invoice.upsert.mockResolvedValue({
+        id: '550e8400-e29b-41d4-a716-446655440000',
+      });
+
+      await service.createFromPdf('invoices/test.pdf', Buffer.from('mock'));
+
+      const upsertCall = mockPrisma.invoice.upsert.mock.calls[0][0];
+      expect(upsertCall.create.ressarcimentoDanos).toBe(12.5);
+      expect(upsertCall.create.valorTotalSemGD).toBeCloseTo(262.5, 2); // 100+100+50+12.5
     });
   });
 

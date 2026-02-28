@@ -12,6 +12,8 @@ export interface ExtractedInvoiceData {
   energiaCompensadaKwh: number;
   energiaCompensadaValue: number;
   contribIlumPublica: number;
+  ressarcimentoDanos: number;
+  valorAPagar?: number;
 }
 
 function parseBrazilianNumber(str: string): number {
@@ -38,6 +40,8 @@ export class PdfExtractorService {
     const energiaSceee = this.extractEnergiaSceee(text);
     const energiaCompensada = this.extractEnergiaCompensada(text);
     const contribIlumPublica = this.extractContribIlumPublica(text);
+    const ressarcimentoDanos = this.extractRessarcimentoDanos(text);
+    const valorAPagar = this.extractValorAPagar(text);
 
     return {
       clientNumber,
@@ -50,7 +54,40 @@ export class PdfExtractorService {
       energiaCompensadaKwh: energiaCompensada.kwh,
       energiaCompensadaValue: energiaCompensada.value,
       contribIlumPublica,
+      ressarcimentoDanos,
+      valorAPagar,
     };
+  }
+
+  /** Extrai o valor de "Ressarcimento de Danos" da tabela Valores Faturados */
+  private extractRessarcimentoDanos(text: string): number {
+    const sameLine = text.match(
+      /Ressarcimento\s+de\s+Danos\s+(-?[\d.,]+)/i,
+    );
+    if (sameLine?.[1]) return parseBrazilianNumber(sameLine[1]);
+
+    const nextLine = text.match(
+      /Ressarcimento\s+de\s+Danos[\s\S]*?(-?[\d.,]+)/i,
+    );
+    if (nextLine?.[1]) return parseBrazilianNumber(nextLine[1]);
+
+    return 0;
+  }
+
+  /** Extrai o valor da caixa "Valor a pagar (R$)" - ex: 107,38 */
+  private extractValorAPagar(text: string): number | undefined {
+    const match = text.match(
+      /Valor\s*a\s*pagar\s*\(R\$\)\s*\n\s*[\w\/]+\s+[\d\/]+\s+([\d.,]+)/i,
+    );
+    if (match?.[1]) return parseBrazilianNumber(match[1]);
+
+    const totalMatch = text.match(/Total\s*a\s*pagar\s*[\s:\-]*\s*R?\$?\s*([\d.,]+)/i);
+    if (totalMatch?.[1]) return parseBrazilianNumber(totalMatch[1]);
+
+    const totalLine = text.match(/TOTAL\s+([\d.,]+)/i);
+    if (totalLine?.[1]) return parseBrazilianNumber(totalLine[1]);
+
+    return undefined;
   }
 
   private extractClientNumber(text: string): string {
