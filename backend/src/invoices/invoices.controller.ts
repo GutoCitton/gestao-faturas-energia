@@ -7,7 +7,7 @@ import {
   UseInterceptors,
   UploadedFile,
   Res,
-  ParseIntPipe,
+  ParseUUIDPipe,
   BadRequestException,
 } from '@nestjs/common';
 import {
@@ -102,7 +102,7 @@ export class InvoicesController {
   @ApiResponse({ status: 200, description: 'Arquivo PDF' })
   @ApiResponse({ status: 404, description: 'Fatura não encontrada' })
   async download(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseUUIDPipe) id: string,
     @Res() res: Response,
   ) {
     const { stream, filename } = await this.invoicesService.getDownloadStream(id);

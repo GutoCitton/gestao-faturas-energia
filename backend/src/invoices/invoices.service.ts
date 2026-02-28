@@ -138,7 +138,7 @@ export class InvoicesService {
     return result.map((r) => r.clientNumber);
   }
 
-  async getDownloadStream(id: number) {
+  async getDownloadStream(id: string) {
     const invoice = await this.prisma.invoice.findUnique({
       where: { id },
     });

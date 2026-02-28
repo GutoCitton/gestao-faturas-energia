@@ -54,7 +54,9 @@ describe('InvoicesService', () => {
         contribIlumPublica: 47.57,
       });
 
-      mockPrisma.invoice.upsert.mockResolvedValue({ id: 1 });
+      mockPrisma.invoice.upsert.mockResolvedValue({
+        id: '550e8400-e29b-41d4-a716-446655440000',
+      });
 
       const buffer = Buffer.from('mock');
       await service.createFromPdf('invoices/test.pdf', buffer);
@@ -102,9 +104,9 @@ describe('InvoicesService', () => {
     it('should throw NotFoundException when invoice not found', async () => {
       mockPrisma.invoice.findUnique.mockResolvedValue(null);
 
-      await expect(service.getDownloadStream(999)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.getDownloadStream('550e8400-e29b-41d4-a716-446655440000'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should return stream from storage', async () => {
@@ -112,13 +114,15 @@ describe('InvoicesService', () => {
       mockStorageService.getStream.mockResolvedValue(mockStream);
 
       mockPrisma.invoice.findUnique.mockResolvedValue({
-        id: 1,
+        id: '550e8400-e29b-41d4-a716-446655440000',
         clientNumber: '7202210726',
         referenceMonth: 'SET/2024',
         pdfPath: 'invoices/test.pdf',
       });
 
-      const result = await service.getDownloadStream(1);
+      const result = await service.getDownloadStream(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
 
       expect(mockStorageService.getStream).toHaveBeenCalledWith(
         'invoices/test.pdf',
