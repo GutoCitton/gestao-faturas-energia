@@ -18,9 +18,13 @@ export function InvoiceLibrary() {
       .catch(() => setInvoices([]))
   }, [clientNumber, year])
 
-  useEffect(() => {
+  const fetchClients = useCallback(() => {
     invoicesApi.clients().then(setClients).catch(() => setClients([]))
   }, [])
+
+  useEffect(() => {
+    fetchClients()
+  }, [fetchClients])
 
   useEffect(() => {
     fetchInvoices()
@@ -81,6 +85,7 @@ export function InvoiceLibrary() {
         onDelete={async (id) => {
           try {
             await invoicesApi.delete(id)
+            fetchClients()
             fetchInvoices()
           } catch {
             alert('Erro ao excluir fatura. Tente novamente.')
@@ -93,6 +98,7 @@ export function InvoiceLibrary() {
         onClose={() => setUploadOpen(false)}
         onSuccess={() => {
           setUploadOpen(false)
+          fetchClients()
           fetchInvoices()
         }}
       />
